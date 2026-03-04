@@ -12,7 +12,7 @@ import numpy as np
 # CONFIGURACAO DA PAGINA
 # ──────────────────────────────────────────────
 st.set_page_config(
-    page_title="Dashboard Produção - Todas as Empresas",
+    page_title="Dashboard Produção - Empresas",
     page_icon="🏭",
     layout="wide",
     initial_sidebar_state="expanded",
