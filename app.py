@@ -12,7 +12,7 @@ import numpy as np
 # CONFIGURACAO DA PAGINA
 # ──────────────────────────────────────────────
 st.set_page_config(
-    page_title="Dashboard Producao - Todas as Empresas",
+    page_title="Dashboard Produção - Todas as Empresas",
     page_icon="🏭",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -168,7 +168,7 @@ DARK_LAYOUT = dict(
 MESES_PT = {
     1: "Janeiro",
     2: "Fevereiro",
-    3: "Marco",
+    3: "Março",
     4: "Abril",
     5: "Maio",
     6: "Junho",
@@ -188,7 +188,7 @@ MESES_NOME = {
 
 NOMES_DIAS = {
     "Monday": "Seg", "Tuesday": "Ter", "Wednesday": "Qua",
-    "Thursday": "Qui", "Friday": "Sex", "Saturday": "Sab",
+    "Thursday": "Qui", "Friday": "Sex", "Saturday": "Sáb",
     "Sunday": "Dom",
 }
 
@@ -196,13 +196,13 @@ ORDEM_DIAS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
 
 
 def fmt_br(v, decimals=0):
-    """Formata numero no padrao brasileiro (ponto como milhar)."""
+    """Formata número no padrão brasileiro (ponto como milhar)."""
     txt = f"{v:,.{decimals}f}"
     return txt.replace(",", "X").replace(".", ",").replace("X", ".")
 
 
 def dias_uteis(datas):
-    """Conta dias uteis (seg-sex) no conjunto de datas."""
+    """Conta dias úteis (seg-sex) no conjunto de datas."""
     d = pd.to_datetime(datas).dropna().dt.normalize().drop_duplicates()
     return int((d.dt.weekday <= 4).sum())
 
@@ -477,7 +477,7 @@ def render_home(all_data):
             for m in df[df["Ano"].isin(sel_anos)]["Mes"].unique()
         ))
         sel_meses = st.multiselect(
-            "Mes", all_meses, default=all_meses,
+            "Mês", all_meses, default=all_meses,
             format_func=lambda m: MESES_NOME[m],
             key="home_mes",
         )
@@ -494,7 +494,7 @@ def render_home(all_data):
 
         # Filtro de periodo
         st.markdown("### Filtro de Dias")
-        modo = st.radio("Tipo de filtro", ["Periodo", "Um dia"], horizontal=True, key="home_modo")
+        modo = st.radio("Tipo de filtro", ["Período", "Um dia"], horizontal=True, key="home_modo")
 
         # Calcular range de datas
         all_datas = pd.concat([df["Data"] for df in all_data.values()])
@@ -531,7 +531,7 @@ def render_home(all_data):
             ]
         else:
             d_ini = st.date_input(
-                "Inicio", value=d_min,
+                "Início", value=d_min,
                 min_value=d_min, max_value=d_max,
                 format="DD/MM/YYYY", key="home_ini",
             )
@@ -606,7 +606,7 @@ def render_home(all_data):
         >Filtros</button>
         """, height=45)
     st.markdown('<p class="main-title">🏭 Dashboard de Produção — Todas as Empresas</p>', unsafe_allow_html=True)
-    st.markdown('<p class="sub-title">Visao Geral de Todas as Empresas</p>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-title">Visão Geral de Todas as Empresas</p>', unsafe_allow_html=True)
     st.markdown("---")
     total_geral = sum(df["Quantidade"].sum() for df in filtered_data.values())
     n_empresas = len(filtered_data)
@@ -617,12 +617,12 @@ def render_home(all_data):
 
     m1, m2, m3, m4 = st.columns(4)
     m1.metric("Empresas Ativas", n_empresas)
-    m2.metric("Producao Total", f"{total_geral:,.0f}".replace(",", "."))
-    m3.metric("Media por Empresa", f"{total_geral / n_empresas:,.0f}".replace(",", ".") if n_empresas else "0")
+    m2.metric("Produção Total", f"{total_geral:,.0f}".replace(",", "."))
+    m3.metric("Média por Empresa", f"{total_geral / n_empresas:,.0f}".replace(",", ".") if n_empresas else "0")
     m4.metric("Dias com Registros", dias_total)
 
     if excluidas:
-        st.info(f"Empresas sem dados no periodo filtrado: **{', '.join(excluidas)}**")
+        st.info(f"Empresas sem dados no período filtrado: **{', '.join(excluidas)}**")
 
     st.markdown("---")
 
@@ -636,7 +636,7 @@ def render_home(all_data):
     df_totals = pd.DataFrame(company_totals).sort_values("Total", ascending=True)
 
     with col_chart:
-        st.markdown('<p class="section-title">Producao Total por Empresa</p>', unsafe_allow_html=True)
+        st.markdown('<p class="section-title">Produção Total por Empresa</p>', unsafe_allow_html=True)
         fig = px.bar(
             df_totals,
             x="Total",
@@ -672,7 +672,7 @@ def render_home(all_data):
     st.markdown("---")
 
     # -- Grafico de evolucao mensal --
-    st.markdown('<p class="section-title">Evolucao Mensal da Producao</p>', unsafe_allow_html=True)
+    st.markdown('<p class="section-title">Evolução Mensal da Produção</p>', unsafe_allow_html=True)
 
     monthly_frames = []
     for emp, df in filtered_data.items():
@@ -693,7 +693,7 @@ def render_home(all_data):
         )
         fig2.update_layout(
             height=420,
-            xaxis_title="Periodo",
+            xaxis_title="Período",
             yaxis_title="Quantidade Produzida",
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(color="#CBD5E0")),
             **DARK_LAYOUT,
@@ -704,7 +704,7 @@ def render_home(all_data):
 
     # -- Grafico de producao por produto (Treemap) --
     st.markdown("---")
-    st.markdown('<p class="section-title">Producao Total por Produto</p>', unsafe_allow_html=True)
+    st.markdown('<p class="section-title">Produção Total por Produto</p>', unsafe_allow_html=True)
 
     prod_frames = []
     for emp, df in filtered_data.items():
@@ -757,10 +757,11 @@ def render_home(all_data):
         })
     df_resumo = pd.DataFrame(resumo_rows).sort_values("Total Produzido", ascending=False)
     _fmt_int = lambda v: f"{v:,.0f}".replace(",", ".")
+    df_resumo = df_resumo.rename(columns={"Media Diaria": "Média Diária", "Faccoes": "Facções"})
     st.dataframe(
         df_resumo.style.format({
             "Total Produzido": _fmt_int,
-            "Media Diaria": _fmt_int,
+            "Média Diária": _fmt_int,
         }),
         width="stretch", hide_index=True,
     )
@@ -774,7 +775,7 @@ def render_company(empresa, df, all_data):
 
     # -- Sidebar: botao voltar + filtros --
     with st.sidebar:
-        if st.button("< Voltar para Visao Geral", use_container_width=True):
+        if st.button("< Voltar para Visão Geral", use_container_width=True):
             st.query_params.clear()
             st.rerun()
 
@@ -791,7 +792,7 @@ def render_company(empresa, df, all_data):
         # === Mes ===
         meses_disp = sorted(df[df["Ano"].isin(sel_anos)]["Mes"].unique())
         sel_meses = st.multiselect(
-            "Mes", meses_disp,
+            "Mês", meses_disp,
             default=meses_disp,
             format_func=lambda m: MESES_NOME[m],
         )
@@ -802,7 +803,7 @@ def render_company(empresa, df, all_data):
 
         # === Filtro de dias ===
         st.markdown("### Filtro de Dias")
-        modo = st.radio("Tipo de filtro", ["Periodo", "Um dia"], horizontal=True)
+        modo = st.radio("Tipo de filtro", ["Período", "Um dia"], horizontal=True)
 
         if not df_f.empty:
             d_min = df_f["Data"].min().date()
@@ -817,7 +818,7 @@ def render_company(empresa, df, all_data):
                 df_f = df_f[df_f["Data"].dt.date == dia_sel]
             else:
                 d_ini = st.date_input(
-                    "Inicio", value=d_min,
+                    "Início", value=d_min,
                     min_value=d_min, max_value=d_max,
                     format="DD/MM/YYYY",
                 )
@@ -832,7 +833,7 @@ def render_company(empresa, df, all_data):
 
         # === Faccao ===
         facs = sorted(df_f["Faccao"].unique()) if not df_f.empty else []
-        sel_facs = st.multiselect("Faccao", facs, default=facs)
+        sel_facs = st.multiselect("Facção", facs, default=facs)
         if not sel_facs:
             sel_facs = facs
 
@@ -915,7 +916,7 @@ def render_company(empresa, df, all_data):
     # ── KPIs (6 cards) ──
     k1, k2, k3, k4, k5, k6 = st.columns(6)
     k1.metric("Total Produzido", fmt_br(prod_total))
-    k2.metric("Meta do Periodo", fmt_br(meta_periodo) if tem_meta else "Sem meta")
+    k2.metric("Meta do Período", fmt_br(meta_periodo) if tem_meta else "Sem meta")
     k3.metric(
         "Saldo",
         fmt_br(saldo) if tem_meta else "-",
@@ -927,18 +928,18 @@ def render_company(empresa, df, all_data):
         f"{ating*100:.1f}%" if tem_meta else "-",
         delta=f"{(ating-1)*100:+.1f} pp" if tem_meta else None,
     )
-    k5.metric("Media / Dia", fmt_br(media_dia))
-    k6.metric("Dias Uteis", str(d_uteis))
+    k5.metric("Média / Dia", fmt_br(media_dia))
+    k6.metric("Dias Úteis", str(d_uteis))
 
     if not tem_meta:
-        st.info("Esta empresa ainda nao possui meta cadastrada na planilha. "
-                "Ao preencher a coluna 'Meta Diaria', os graficos de meta serao exibidos automaticamente.")
+        st.info("Esta empresa ainda não possui meta cadastrada na planilha. "
+                "Ao preencher a coluna 'Meta Diária', os gráficos de meta serão exibidos automaticamente.")
 
     st.markdown("")
 
     # ── ABAS ──
     tab_vis, tab_facc, tab_rank, tab_dados = st.tabs(
-        ["Visao Geral", "Por Faccao", "Ranking & Alertas", "Dados"]
+        ["Visão Geral", "Por Facção", "Ranking & Alertas", "Dados"]
     )
 
     # ─── Tab 1 - Visao Geral ───────────────────────────────────────
@@ -966,12 +967,12 @@ def render_company(empresa, df, all_data):
         if tem_meta:
             fig1.add_scatter(
                 x=serie["Data"], y=serie["Meta Dia"],
-                mode="lines", name="Meta Diaria",
+                mode="lines", name="Meta Diária",
                 line=dict(color="#facc15", width=2, dash="dash"),
             )
         fig1.update_layout(
-            title="Producao Diaria x Meta",
-            xaxis_title="Data", yaxis_title="Pecas",
+            title="Produção Diária x Meta",
+            xaxis_title="Data", yaxis_title="Peças",
             template="plotly_dark",
             separators=",.",
             xaxis=dict(tickformat="%d/%m/%Y"),
@@ -997,7 +998,7 @@ def render_company(empresa, df, all_data):
                     line=dict(color="#facc15", width=2, dash="dot"),
                 )
             fig_acum.update_layout(
-                title="Acumulado: Producao x Meta",
+                title="Acumulado: Produção x Meta",
                 template="plotly_dark",
                 separators=",.",
                 xaxis=dict(tickformat="%d/%m/%Y"),
@@ -1016,7 +1017,7 @@ def render_company(empresa, df, all_data):
 
             fig_box = px.box(
                 dia_df, x="Dia", y="Quantidade", color="Dia",
-                title="Distribuicao por Dia da Semana",
+                title="Distribuição por Dia da Semana",
                 template="plotly_dark",
             )
             fig_box.update_layout(showlegend=False, separators=",.", margin=dict(t=50, b=40))
@@ -1031,11 +1032,11 @@ def render_company(empresa, df, all_data):
             mensal, x="MesNome", y="Quantidade",
             color="Ano", barmode="group",
             text_auto=True,
-            title="Producao Mensal",
+            title="Produção Mensal",
             template="plotly_dark",
         )
         fig_mes.update_layout(
-            xaxis_title="Mes", yaxis_title="Pecas",
+            xaxis_title="Mês", yaxis_title="Peças",
             separators=",.",
             margin=dict(t=50, b=40),
         )
@@ -1070,16 +1071,17 @@ def render_company(empresa, df, all_data):
         tbl["Media/Dia"] = np.where(tbl["Dias"] > 0, tbl["Produzido"] / tbl["Dias"], 0)
         tbl = tbl.sort_values("Ating. %", ascending=False)
 
-        st.markdown("### Resumo por Faccao")
+        st.markdown("### Resumo por Facção")
         _fmt_int = lambda v: f"{v:,.0f}".replace(",", ".")
+        tbl_display = tbl.rename(columns={"Faccao": "Facção", "Meta Periodo": "Meta Período", "Media/Dia": "Média/Dia"})
         st.dataframe(
-            tbl.style.format({
+            tbl_display.style.format({
                 "Produzido": _fmt_int,
                 "Meta Dia": _fmt_int,
-                "Meta Periodo": _fmt_int,
+                "Meta Período": _fmt_int,
                 "Saldo": _fmt_int,
                 "Ating. %": "{:.1f}%",
-                "Media/Dia": _fmt_int,
+                "Média/Dia": _fmt_int,
             }).background_gradient(subset=["Ating. %"], cmap="RdYlGn", vmin=50, vmax=120),
             width="stretch",
             hide_index=True,
@@ -1104,7 +1106,7 @@ def render_company(empresa, df, all_data):
                 )
                 fig_ating.add_vline(x=100, line_dash="dash", line_color="#facc15")
                 fig_ating.update_layout(
-                    title="Atingimento por Faccao (%)",
+                    title="Atingimento por Facção (%)",
                     xaxis_title="% Meta", yaxis_title="",
                     template="plotly_dark",
                     separators=",.",
@@ -1118,7 +1120,7 @@ def render_company(empresa, df, all_data):
                     y="Faccao", x="Produzido", orientation="h",
                     text="Produzido",
                     color_discrete_sequence=[cor],
-                    title="Volume Produzido por Faccao",
+                    title="Volume Produzido por Facção",
                     template="plotly_dark",
                 )
                 fig_vol.update_traces(texttemplate="%{text:,.0f}", textposition="outside")
@@ -1133,7 +1135,7 @@ def render_company(empresa, df, all_data):
                     color="Ating. %",
                     color_continuous_scale="RdYlGn",
                     range_color=[50, 120],
-                    title="Participacao no Volume (cor = ating. %)",
+                    title="Participação no Volume (cor = ating. %)",
                     template="plotly_dark",
                 )
             else:
@@ -1141,7 +1143,7 @@ def render_company(empresa, df, all_data):
                     tbl, path=["Faccao"], values="Produzido",
                     color="Produzido",
                     color_continuous_scale=[[0, "#1A3A4A"], [1, cor]],
-                    title="Participacao no Volume Total",
+                    title="Participação no Volume Total",
                     template="plotly_dark",
                 )
             fig_tree.update_layout(separators=",.", margin=dict(t=50, b=10))
@@ -1169,8 +1171,8 @@ def render_company(empresa, df, all_data):
                 x=df_fac["Data"], y=df_fac["Quantidade"],
                 mode="lines+markers",
                 name=fac,
-                legendgroup="Faccao",
-                legendgrouptitle_text="Faccao",
+                legendgroup="Facção",
+                legendgrouptitle_text="Facção",
                 line=dict(color=cor_map[fac], width=2),
                 marker=dict(size=5),
             )
@@ -1199,9 +1201,9 @@ def render_company(empresa, df, all_data):
                     )
 
         fig_linhas.update_layout(
-            title="Evolucao Diaria por Faccao",
+            title="Evolução Diária por Facção",
             xaxis_title="Data",
-            yaxis_title="Pecas",
+            yaxis_title="Peças",
             xaxis=dict(tickformat="%d/%m/%Y"),
             legend=dict(
                 orientation="v", x=1.02, y=1,
@@ -1226,7 +1228,7 @@ def render_company(empresa, df, all_data):
             top5["DataFmt"] = top5["Data"].dt.strftime("%d/%m/%Y")
             for i, row in enumerate(top5.itertuples(), 1):
                 medal = ["1.", "2.", "3."][i - 1] if i <= 3 else f"  {i}."
-                st.markdown(f"**{medal} {row.DataFmt}** - {fmt_br(row.Quantidade)} pecas")
+                st.markdown(f"**{medal} {row.DataFmt}** - {fmt_br(row.Quantidade)} peças")
 
         with col_r2:
             st.markdown("### Top 5 Dias Menos Produtivos")
@@ -1236,24 +1238,25 @@ def render_company(empresa, df, all_data):
             )
             bot5["DataFmt"] = bot5["Data"].dt.strftime("%d/%m/%Y")
             for i, row in enumerate(bot5.itertuples(), 1):
-                st.markdown(f"**{i}. {row.DataFmt}** - {fmt_br(row.Quantidade)} pecas")
+                st.markdown(f"**{i}. {row.DataFmt}** - {fmt_br(row.Quantidade)} peças")
 
         st.markdown("---")
 
         # Faccoes abaixo de 70% de atingimento
-        st.markdown("### Faccoes com Producao Abaixo de 70% da Meta")
+        st.markdown("### Facções com Produção Abaixo de 70% da Meta")
         if tem_meta:
             alerta = tbl[tbl["Ating. %"] < 70][
                 ["Faccao", "Produzido", "Meta Periodo", "Ating. %", "Saldo"]
             ]
             if alerta.empty:
-                st.success("Nenhuma faccao abaixo de 70% no periodo selecionado!")
+                st.success("Nenhuma facção abaixo de 70% no período selecionado!")
             else:
                 _fmt_int = lambda v: f"{v:,.0f}".replace(",", ".")
+                alerta = alerta.rename(columns={"Faccao": "Facção", "Meta Periodo": "Meta Período"})
                 st.dataframe(
                     alerta.style.format({
                         "Produzido": _fmt_int,
-                        "Meta Periodo": _fmt_int,
+                        "Meta Período": _fmt_int,
                         "Ating. %": "{:.1f}%",
                         "Saldo": _fmt_int,
                     }).map(lambda _: "color: #ef4444", subset=["Ating. %"]),
@@ -1261,12 +1264,12 @@ def render_company(empresa, df, all_data):
                     hide_index=True,
                 )
         else:
-            st.info("Alertas de meta serao exibidos quando a meta for cadastrada na planilha.")
+            st.info("Alertas de meta serão exibidos quando a meta for cadastrada na planilha.")
 
         st.markdown("---")
 
         # Heatmap semanal - producao por semana x faccao
-        st.markdown("### Heatmap - Producao Semanal por Faccao")
+        st.markdown("### Heatmap - Produção Semanal por Facção")
         heat = df_f.pivot_table(
             index="Faccao", columns="Semana",
             values="Quantidade", aggfunc="sum",
@@ -1274,7 +1277,7 @@ def render_company(empresa, df, all_data):
         fig_heat = px.imshow(
             heat, aspect="auto",
             color_continuous_scale="YlGn",
-            labels=dict(x="Semana", y="Faccao", color="Pecas"),
+            labels=dict(x="Semana", y="Facção", color="Peças"),
             template="plotly_dark",
         )
         fig_heat.update_layout(separators=",.", margin=dict(t=20, b=40))
@@ -1286,11 +1289,12 @@ def render_company(empresa, df, all_data):
         df_view = df_f[["Data", "Faccao", "Produto", "Quantidade", "Meta Diaria"]].copy()
         df_view = df_view.sort_values(["Data", "Faccao"], ascending=[False, True])
         df_view["Data"] = df_view["Data"].dt.strftime("%d/%m/%Y")
+        df_view = df_view.rename(columns={"Faccao": "Facção", "Meta Diaria": "Meta Diária"})
         _fmt_int = lambda v: f"{v:,.0f}".replace(",", ".")
         st.dataframe(
             df_view.reset_index(drop=True).style.format({
                 "Quantidade": _fmt_int,
-                "Meta Diaria": _fmt_int,
+                "Meta Diária": _fmt_int,
             }),
             width="stretch",
             height=500,
@@ -1311,8 +1315,8 @@ def main():
     all_data = load_all_data()
 
     if not all_data:
-        st.error("Nao foi possivel carregar os dados da planilha.")
-        st.info("Verifique se o arquivo 'planilha_producao.xlsx' esta disponivel ou se a planilha do Google Sheets esta acessivel.")
+        st.error("Não foi possível carregar os dados da planilha.")
+        st.info("Verifique se o arquivo 'planilha_producao.xlsx' está disponível ou se a planilha do Google Sheets está acessível.")
         return
 
     empresa = st.query_params.get("empresa", None)
