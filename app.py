@@ -1167,12 +1167,13 @@ def render_company(empresa, df, all_data):
             .sum().sort_values("Data")
         )
 
-        # Cores distintas para cada faccao
+        # Cores distintas para cada faccao – ordem segue sel_facs
         _CORES_FAC = [
             "#636EFA", "#EF553B", "#00CC96", "#AB63FA", "#FFA15A",
             "#19D3F3", "#FF6692", "#B6E880", "#FF97FF", "#FECB52",
         ]
-        faccoes = sorted(prod_facc["Faccao"].unique())
+        faccoes_no_dado = set(prod_facc["Faccao"].unique())
+        faccoes = [f for f in sel_facs if f in faccoes_no_dado]
         cor_map = {f: _CORES_FAC[i % len(_CORES_FAC)] for i, f in enumerate(faccoes)}
 
         fig_linhas = go.Figure()
@@ -1190,27 +1191,25 @@ def render_company(empresa, df, all_data):
             )
 
         # Linhas de meta por faccao (tracejadas, na legenda como grupo "Meta")
-        if tem_meta:
-            meta_por_f = (
-                df_f.drop_duplicates(subset=["Faccao", "Produto"])
-                .groupby("Faccao")["Meta Diaria"]
-                .sum()
-            )
-            _CORES_META = ["#ef4444", "#22c55e", "#f97316", "#3b82f6", "#a855f7", "#eab308", "#ec4899", "#14b8a6"]
-            datas_range = [prod_facc["Data"].min(), prod_facc["Data"].max()]
-            for i, fac in enumerate(faccoes):
-                meta_val = meta_por_f.get(fac, 0)
-                if meta_val > 0:
-                    meta_cor = cor_map.get(fac, "#FFFFFF")
-                    fig_linhas.add_scatter(
-                        x=datas_range, y=[meta_val, meta_val],
-                        mode="lines",
-                        name=f"Meta {fac}: {meta_val:,.0f}".replace(",", "."),
-                        legendgroup="Meta",
-                        legendgrouptitle_text="Meta",
-                        line=dict(dash="dash", width=2, color=meta_cor),
-                        showlegend=True,
-                    )
+        meta_por_f = (
+            df_f.drop_duplicates(subset=["Faccao", "Produto"])
+            .groupby("Faccao")["Meta Diaria"]
+            .sum()
+        )
+        datas_range = [prod_facc["Data"].min(), prod_facc["Data"].max()]
+        for fac in faccoes:
+            meta_val = meta_por_f.get(fac, 0)
+            if meta_val > 0:
+                meta_cor = cor_map.get(fac, "#FFFFFF")
+                fig_linhas.add_scatter(
+                    x=datas_range, y=[meta_val, meta_val],
+                    mode="lines",
+                    name=f"Meta {fac}: {meta_val:,.0f}".replace(",", "."),
+                    legendgroup="Meta",
+                    legendgrouptitle_text="Meta",
+                    line=dict(dash="dash", width=2, color=meta_cor),
+                    showlegend=True,
+                )
 
         fig_linhas.update_layout(
             title="Evolução Diária por Facção",
