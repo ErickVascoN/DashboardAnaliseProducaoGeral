@@ -451,17 +451,21 @@ def _parse_sheet(raw, sheet_name):
 # ──────────────────────────────────────────────
 # Helpers de filtro – clampar valores em session_state
 # ──────────────────────────────────────────────
-def _clamp_multiselect(key, valid_options):
-    """Remove do session_state valores que não estão mais nas opções válidas."""
-    if key in st.session_state:
+def _init_or_clamp_multiselect(key, valid_options):
+    """Inicializa ou clampa multiselect na session_state."""
+    if key not in st.session_state:
+        st.session_state[key] = list(valid_options)
+    else:
         clamped = [v for v in st.session_state[key] if v in valid_options]
-        if clamped != st.session_state[key]:
+        if clamped != list(st.session_state[key]):
             st.session_state[key] = clamped
 
 
-def _clamp_date(key, d_min, d_max):
-    """Garante que a data em session_state esteja dentro de [d_min, d_max]."""
-    if key in st.session_state:
+def _init_or_clamp_date(key, default_val, d_min, d_max):
+    """Inicializa ou clampa date_input na session_state."""
+    if key not in st.session_state:
+        st.session_state[key] = default_val
+    else:
         v = st.session_state[key]
         if v < d_min or v > d_max:
             st.session_state[key] = max(d_min, min(v, d_max))
@@ -477,7 +481,8 @@ def render_home(all_data):
 
         # ── Ano ──
         all_anos = sorted(set(a for df in all_data.values() for a in df["Ano"].unique()))
-        sel_anos = st.multiselect("Ano", all_anos, default=all_anos, key="home_ano")
+        _init_or_clamp_multiselect("home_ano", all_anos)
+        sel_anos = st.multiselect("Ano", all_anos, key="home_ano")
         if not sel_anos:
             sel_anos = all_anos
 
@@ -486,9 +491,9 @@ def render_home(all_data):
             m for df in all_data.values()
             for m in df[df["Ano"].isin(sel_anos)]["Mes"].unique()
         ))
-        _clamp_multiselect("home_mes", all_meses)
+        _init_or_clamp_multiselect("home_mes", all_meses)
         sel_meses = st.multiselect(
-            "Mês", all_meses, default=all_meses,
+            "Mês", all_meses,
             format_func=lambda m: MESES_NOME[m],
             key="home_mes",
         )
@@ -513,13 +518,13 @@ def render_home(all_data):
             d_max = all_datas.max().date()
 
         # Clampar datas em session_state ao range válido
-        for dk in ("home_ini", "home_dia"):
-            _clamp_date(dk, d_min, d_max)
-        _clamp_date("home_fim", d_min, d_max)
+        _init_or_clamp_date("home_dia", d_max, d_min, d_max)
+        _init_or_clamp_date("home_ini", d_min, d_min, d_max)
+        _init_or_clamp_date("home_fim", d_max, d_min, d_max)
 
         if modo == "Um dia":
             dia_sel = st.date_input(
-                "Dia", value=d_max,
+                "Dia",
                 min_value=d_min, max_value=d_max,
                 format="DD/MM/YYYY", key="home_dia",
             )
@@ -530,12 +535,12 @@ def render_home(all_data):
             ]
         else:
             d_ini = st.date_input(
-                "Início", value=d_min,
+                "Início",
                 min_value=d_min, max_value=d_max,
                 format="DD/MM/YYYY", key="home_ini",
             )
             d_fim = st.date_input(
-                "Fim", value=d_max,
+                "Fim",
                 min_value=d_min, max_value=d_max,
                 format="DD/MM/YYYY", key="home_fim",
             )
