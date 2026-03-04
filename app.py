@@ -162,6 +162,7 @@ DARK_LAYOUT = dict(
     font=dict(color="#CBD5E0"),
     xaxis=dict(gridcolor="#2D3748", zerolinecolor="#2D3748"),
     yaxis=dict(gridcolor="#2D3748", zerolinecolor="#2D3748"),
+    separators=",.",
 )
 
 MESES_PT = {
@@ -755,7 +756,14 @@ def render_home(all_data):
             "Produtos": n_prod,
         })
     df_resumo = pd.DataFrame(resumo_rows).sort_values("Total Produzido", ascending=False)
-    st.dataframe(df_resumo, width="stretch", hide_index=True)
+    _fmt_int = lambda v: f"{v:,.0f}".replace(",", ".")
+    st.dataframe(
+        df_resumo.style.format({
+            "Total Produzido": _fmt_int,
+            "Media Diaria": _fmt_int,
+        }),
+        width="stretch", hide_index=True,
+    )
 
 
 # ──────────────────────────────────────────────
@@ -965,6 +973,7 @@ def render_company(empresa, df, all_data):
             title="Producao Diaria x Meta",
             xaxis_title="Data", yaxis_title="Pecas",
             template="plotly_dark",
+            separators=",.",
             xaxis=dict(tickformat="%d/%m/%Y"),
             legend=dict(orientation="h", y=-0.15),
             margin=dict(t=50, b=60),
@@ -990,6 +999,7 @@ def render_company(empresa, df, all_data):
             fig_acum.update_layout(
                 title="Acumulado: Producao x Meta",
                 template="plotly_dark",
+                separators=",.",
                 xaxis=dict(tickformat="%d/%m/%Y"),
                 legend=dict(orientation="h", y=-0.18),
                 margin=dict(t=50, b=60),
@@ -1009,7 +1019,7 @@ def render_company(empresa, df, all_data):
                 title="Distribuicao por Dia da Semana",
                 template="plotly_dark",
             )
-            fig_box.update_layout(showlegend=False, margin=dict(t=50, b=40))
+            fig_box.update_layout(showlegend=False, separators=",.", margin=dict(t=50, b=40))
             st.plotly_chart(fig_box, width="stretch")
 
         # 1.3 Producao mensal (barras agrupadas por ano)
@@ -1026,6 +1036,7 @@ def render_company(empresa, df, all_data):
         )
         fig_mes.update_layout(
             xaxis_title="Mes", yaxis_title="Pecas",
+            separators=",.",
             margin=dict(t=50, b=40),
         )
         st.plotly_chart(fig_mes, width="stretch")
@@ -1060,13 +1071,15 @@ def render_company(empresa, df, all_data):
         tbl = tbl.sort_values("Ating. %", ascending=False)
 
         st.markdown("### Resumo por Faccao")
+        _fmt_int = lambda v: f"{v:,.0f}".replace(",", ".")
         st.dataframe(
             tbl.style.format({
-                "Produzido": "{:,.0f}",
-                "Meta Periodo": "{:,.0f}",
-                "Saldo": "{:,.0f}",
+                "Produzido": _fmt_int,
+                "Meta Dia": _fmt_int,
+                "Meta Periodo": _fmt_int,
+                "Saldo": _fmt_int,
                 "Ating. %": "{:.1f}%",
-                "Media/Dia": "{:,.0f}",
+                "Media/Dia": _fmt_int,
             }).background_gradient(subset=["Ating. %"], cmap="RdYlGn", vmin=50, vmax=120),
             width="stretch",
             hide_index=True,
@@ -1094,6 +1107,7 @@ def render_company(empresa, df, all_data):
                     title="Atingimento por Faccao (%)",
                     xaxis_title="% Meta", yaxis_title="",
                     template="plotly_dark",
+                    separators=",.",
                     margin=dict(t=50, l=100, r=40, b=40),
                 )
                 st.plotly_chart(fig_ating, width="stretch")
@@ -1108,7 +1122,7 @@ def render_company(empresa, df, all_data):
                     template="plotly_dark",
                 )
                 fig_vol.update_traces(texttemplate="%{text:,.0f}", textposition="outside")
-                fig_vol.update_layout(margin=dict(t=50, l=100, r=40, b=40))
+                fig_vol.update_layout(separators=",.", margin=dict(t=50, l=100, r=40, b=40))
                 st.plotly_chart(fig_vol, width="stretch")
 
         # 2.3 Treemap - participacao no volume
@@ -1130,7 +1144,7 @@ def render_company(empresa, df, all_data):
                     title="Participacao no Volume Total",
                     template="plotly_dark",
                 )
-            fig_tree.update_layout(margin=dict(t=50, b=10))
+            fig_tree.update_layout(separators=",.", margin=dict(t=50, b=10))
             st.plotly_chart(fig_tree, width="stretch")
 
         # 2.4 Linhas de producao diaria por faccao (com marcadores + metas na legenda)
@@ -1195,6 +1209,7 @@ def render_company(empresa, df, all_data):
             ),
             margin=dict(t=50, b=60, r=200),
             template="plotly_dark",
+            separators=",.",
         )
         st.plotly_chart(fig_linhas, width="stretch")
 
@@ -1234,12 +1249,13 @@ def render_company(empresa, df, all_data):
             if alerta.empty:
                 st.success("Nenhuma faccao abaixo de 70% no periodo selecionado!")
             else:
+                _fmt_int = lambda v: f"{v:,.0f}".replace(",", ".")
                 st.dataframe(
                     alerta.style.format({
-                        "Produzido": "{:,.0f}",
-                        "Meta Periodo": "{:,.0f}",
+                        "Produzido": _fmt_int,
+                        "Meta Periodo": _fmt_int,
                         "Ating. %": "{:.1f}%",
-                        "Saldo": "{:,.0f}",
+                        "Saldo": _fmt_int,
                     }).map(lambda _: "color: #ef4444", subset=["Ating. %"]),
                     width="stretch",
                     hide_index=True,
@@ -1261,7 +1277,7 @@ def render_company(empresa, df, all_data):
             labels=dict(x="Semana", y="Faccao", color="Pecas"),
             template="plotly_dark",
         )
-        fig_heat.update_layout(margin=dict(t=20, b=40))
+        fig_heat.update_layout(separators=",.", margin=dict(t=20, b=40))
         st.plotly_chart(fig_heat, width="stretch")
 
     # ─── Tab 4 - Dados ────────────────────────────────────────────
@@ -1270,8 +1286,12 @@ def render_company(empresa, df, all_data):
         df_view = df_f[["Data", "Faccao", "Produto", "Quantidade", "Meta Diaria"]].copy()
         df_view = df_view.sort_values(["Data", "Faccao"], ascending=[False, True])
         df_view["Data"] = df_view["Data"].dt.strftime("%d/%m/%Y")
+        _fmt_int = lambda v: f"{v:,.0f}".replace(",", ".")
         st.dataframe(
-            df_view.reset_index(drop=True),
+            df_view.reset_index(drop=True).style.format({
+                "Quantidade": _fmt_int,
+                "Meta Diaria": _fmt_int,
+            }),
             width="stretch",
             height=500,
         )
