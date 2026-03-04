@@ -23,10 +23,8 @@ st.set_page_config(
 # ──────────────────────────────────────────────
 st.markdown("""
 <style>
-    /* Esconde o menu e rodape padrao */
-    #MainMenu {visibility: hidden;}
+    /* Esconde rodapé padrão */
     footer {visibility: hidden;}
-    header {visibility: hidden;}
 
     /* Fundo geral escuro */
     .stApp {
@@ -764,7 +762,7 @@ def render_home(all_data):
             "Média Diária": _fmt_int,
         }),
         width="stretch", hide_index=True,
-    )
+    ) 
 
 
 # ──────────────────────────────────────────────
