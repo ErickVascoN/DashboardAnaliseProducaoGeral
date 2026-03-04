@@ -449,61 +449,57 @@ def _parse_sheet(raw, sheet_name):
 
 
 # ──────────────────────────────────────────────
-# Callbacks de filtro (home)
+# Helpers de filtro – clampar valores em session_state
 # ──────────────────────────────────────────────
-def _on_home_ano_change():
-    """Reseta meses e datas ao mudar anos."""
-    for k in ("home_mes", "home_ini", "home_fim", "home_dia",
-              "_home_date_range"):
-        st.session_state.pop(k, None)
-    st.session_state["_home_needs_rerun"] = True
+def _clamp_multiselect(key, valid_options):
+    """Remove do session_state valores que não estão mais nas opções válidas."""
+    if key in st.session_state:
+        clamped = [v for v in st.session_state[key] if v in valid_options]
+        if clamped != st.session_state[key]:
+            st.session_state[key] = clamped
 
 
-def _on_home_mes_change():
-    """Reseta datas ao mudar meses."""
-    for k in ("home_ini", "home_fim", "home_dia", "_home_date_range"):
-        st.session_state.pop(k, None)
-    st.session_state["_home_needs_rerun"] = True
+def _clamp_date(key, d_min, d_max):
+    """Garante que a data em session_state esteja dentro de [d_min, d_max]."""
+    if key in st.session_state:
+        v = st.session_state[key]
+        if v < d_min or v > d_max:
+            st.session_state[key] = max(d_min, min(v, d_max))
 
 
 # ──────────────────────────────────────────────
 # TELA INICIAL (HOME)
 # ──────────────────────────────────────────────
 def render_home(all_data):
-    # Forçar rerun limpo quando filtros dependentes foram resetados
-    if st.session_state.pop("_home_needs_rerun", False):
-        st.rerun()
-
     # -- Sidebar: filtros de data --
     with st.sidebar:
         st.markdown("### Filtros")
 
-        # Coletar todos os anos e meses disponiveis
+        # ── Ano ──
         all_anos = sorted(set(a for df in all_data.values() for a in df["Ano"].unique()))
-        sel_anos = st.multiselect(
-            "Ano", all_anos, default=all_anos,
-            key="home_ano", on_change=_on_home_ano_change,
-        )
+        sel_anos = st.multiselect("Ano", all_anos, default=all_anos, key="home_ano")
         if not sel_anos:
             sel_anos = all_anos
 
+        # ── Mês (opções dependem dos anos selecionados) ──
         all_meses = sorted(set(
             m for df in all_data.values()
             for m in df[df["Ano"].isin(sel_anos)]["Mes"].unique()
         ))
+        _clamp_multiselect("home_mes", all_meses)
         sel_meses = st.multiselect(
             "Mês", all_meses, default=all_meses,
             format_func=lambda m: MESES_NOME[m],
-            key="home_mes", on_change=_on_home_mes_change,
+            key="home_mes",
         )
         if not sel_meses:
             sel_meses = all_meses
 
-        # Filtro de periodo
+        # ── Filtro de período ──
         st.markdown("### Filtro de Dias")
         modo = st.radio("Tipo de filtro", ["Período", "Um dia"], horizontal=True, key="home_modo")
 
-        # Calcular range de datas
+        # Calcular range de datas válido
         all_datas = pd.concat([df["Data"] for df in all_data.values()])
         filtered_datas = all_datas[
             all_datas.dt.year.isin(sel_anos) &
@@ -516,14 +512,10 @@ def render_home(all_data):
             d_min = all_datas.min().date()
             d_max = all_datas.max().date()
 
-        # Resetar date inputs quando o range de datas muda
-        prev_range = st.session_state.get("_home_date_range", None)
-        curr_range = (d_min, d_max)
-        if prev_range != curr_range:
-            st.session_state["_home_date_range"] = curr_range
-            for k in ("home_ini", "home_fim", "home_dia"):
-                if k in st.session_state:
-                    del st.session_state[k]
+        # Clampar datas em session_state ao range válido
+        for dk in ("home_ini", "home_dia"):
+            _clamp_date(dk, d_min, d_max)
+        _clamp_date("home_fim", d_min, d_max)
 
         if modo == "Um dia":
             dia_sel = st.date_input(
