@@ -560,6 +560,10 @@ def render_home(all_data):
                 (df["Data"].dt.date.between(ini, fim))
             ]
 
+        if st.button("🔄 Atualizar Dados", use_container_width=True):
+            st.cache_data.clear()
+            st.rerun()
+
         st.sidebar.divider()
         st.sidebar.caption("Dados atualizados a cada 10 min.")
 
@@ -854,6 +858,10 @@ def render_company(empresa, df, all_data):
         sel_prods = st.multiselect("Produto", prods, default=prods)
         if not sel_prods:
             sel_prods = prods
+
+        if st.button("🔄 Atualizar Dados", use_container_width=True, key="btn_atualizar_empresa"):
+            st.cache_data.clear()
+            st.rerun()
 
         st.sidebar.divider()
         st.sidebar.caption("Dados atualizados a cada 10 min.")
