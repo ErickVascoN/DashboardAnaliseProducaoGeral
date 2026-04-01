@@ -148,7 +148,7 @@ def _calc_meta(df_f: pd.DataFrame, sel_facs: list) -> tuple:
         .drop_duplicates(subset=["Faccao", "Produto", "Ano", "Mes"])
         .groupby(["Faccao", "Ano", "Mes"], as_index=False)
         .agg({
-            "Meta Diaria": "mean"  # Média das metas (mais segura que soma)
+            "Meta Diaria": "first"  # Pega apenas uma meta por (Faccao, Mes) - não duplica
         })
     )
     meta_mensal["Meta Diaria"] = meta_mensal["Meta Diaria"].fillna(0)
@@ -171,7 +171,7 @@ def _calc_meta(df_f: pd.DataFrame, sel_facs: list) -> tuple:
     meta_periodo = float(meta_mensal["Meta Periodo Mes"].sum())
 
     meta_por_anomes = (
-        meta_mensal.groupby(["Ano", "Mes"], as_index=False)["Meta Diaria"].mean()
+        meta_mensal.groupby(["Ano", "Mes"], as_index=False)["Meta Diaria"].sum()
     )
     datas_unicas = df_sel[["Data", "Ano", "Mes"]].drop_duplicates()
     meta_por_data = (
@@ -1150,10 +1150,10 @@ def render_company(empresa, df, all_data):
                 line=dict(color=cor_map[fac], width=2), marker=dict(size=5),
             )
 
-        # Usar meta diária MÉDIA (não soma) para cada facção
+        # Usar meta diária somada por facção (não média)
         meta_por_f = (
             df_f.drop_duplicates(subset=["Faccao", "Produto"])
-            .groupby("Faccao")["Meta Diaria"].mean()
+            .groupby("Faccao")["Meta Diaria"].sum()
         )
         datas_range = [prod_facc["Data"].min(), prod_facc["Data"].max()]
         for fac in faccoes:
